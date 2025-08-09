@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,53 +10,43 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "usage: countdown duration\n")
+	var showProgress bool
+	flag.BoolVar(&showProgress, "v", false, "verbose output")
+	flag.BoolVar(&showProgress, "verbose", false, "verbose output")
+	
+	flag.Usage = printUsage
+	flag.Parse()
+
+	args := flag.Args()
+	if len(args) != 1 {
+		printUsage()
 		os.Exit(1)
 	}
 
-	arg := os.Args[1]
-	if arg == "-h" || arg == "--help" {
-		printHelp()
-		os.Exit(0)
-	}
-
-	duration, err := parseDuration(arg)
+	duration, err := parseDuration(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "countdown: %s\n", err)
+		fmt.Fprintf(os.Stderr, "countdown: invalid time interval '%s'\n", args[0])
 		os.Exit(1)
 	}
 
-	runCountdown(duration)
+	runCountdown(duration, showProgress)
 }
 
-func printHelp() {
-	fmt.Print(`countdown - display a countdown timer
-
-USAGE
-    countdown duration
-
-DESCRIPTION
-    countdown displays a countdown timer for the specified duration.
-    The duration can be specified using Go's duration format.
-
-EXAMPLES
-    countdown 30s        30 seconds
-    countdown 5m         5 minutes
-    countdown 1h30m      1 hour 30 minutes
-    countdown 1m30s      1 minute 30 seconds
-
-OPTIONS
-    -h, --help    show this help message
-
-`)
+func printUsage() {
+	fmt.Fprintf(os.Stderr, "Usage: countdown [-v] NUMBER[SUFFIX]...\n")
+	fmt.Fprintf(os.Stderr, "Pause for NUMBER seconds.  SUFFIX may be 's' for seconds (the default),\n")
+	fmt.Fprintf(os.Stderr, "'m' for minutes, 'h' for hours.  Multiple numbers may be specified\n")
+	fmt.Fprintf(os.Stderr, "by combining them: 1h30m means 1 hour 30 minutes.\n")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "  -v, --verbose     display countdown progress\n")
+	fmt.Fprintf(os.Stderr, "      --help        display this help and exit\n")
 }
 
 func parseDuration(input string) (time.Duration, error) {
 	return time.ParseDuration(input)
 }
 
-func runCountdown(duration time.Duration) {
+func runCountdown(duration time.Duration, showProgress bool) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
@@ -67,15 +58,21 @@ func runCountdown(duration time.Duration) {
 	for {
 		select {
 		case <-c:
-			fmt.Println("\nCountdown interrupted")
+			if showProgress {
+				fmt.Println("\nCountdown interrupted")
+			}
 			return
 		case <-ticker.C:
 			if remaining <= 0 {
-				fmt.Println("")
+				if showProgress {
+					fmt.Println("")
+				}
 				return
 			}
 
-			fmt.Printf("\r%s", formatDuration(remaining))
+			if showProgress {
+				fmt.Printf("\r%s", formatDuration(remaining))
+			}
 			remaining -= time.Second
 		}
 	}

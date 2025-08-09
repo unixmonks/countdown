@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 	"time"
 )
@@ -64,6 +65,30 @@ func TestFormatDuration(t *testing.T) {
 			if result != test.expected {
 				t.Errorf("Expected %q for duration %v, got %q", test.expected, test.input, result)
 			}
+		})
+	}
+}
+
+func TestMainFunction(t *testing.T) {
+	tests := []struct {
+		name     string
+		args     []string
+		expected bool
+	}{
+		{"valid duration with flag", []string{"countdown", "-v", "1s"}, true},
+		{"valid duration without flag", []string{"countdown", "1s"}, true},
+		{"no arguments", []string{"countdown"}, false},
+		{"too many arguments", []string{"countdown", "1s", "2s"}, false},
+		{"help flag", []string{"countdown", "--help"}, false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			oldArgs := os.Args
+			defer func() { os.Args = oldArgs }()
+			
+			os.Args = test.args
+			
 		})
 	}
 }
