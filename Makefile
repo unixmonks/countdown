@@ -13,6 +13,10 @@ all: build
 build:
 	go build -o $(BINARY_NAME) $(SOURCE_FILES)
 
+# Run tests
+test:
+	go test -v ./...
+
 # Clean build artifacts
 clean:
 	rm -f $(BINARY_NAME)
@@ -39,7 +43,7 @@ uninstall-user:
 help:
 	@echo "Available targets:"
 	@echo "  build        - Build the binary (default)"
-	@echo "  release      - Build optimized binary for release"
+	@echo "  test         - Run unit tests"
 	@echo "  clean        - Remove build artifacts"
 	@echo "  install      - Install binary to $(BINDIR)"
 	@echo "  uninstall    - Remove binary from $(BINDIR)"
@@ -47,4 +51,4 @@ help:
 	@echo "  uninstall-user - Remove binary from $(USER_BINDIR)"
 	@echo "  help         - Show this help message"
 
-.PHONY: all build release test clean install uninstall install-user uninstall-user fmt lint vet check dev help
+.PHONY: all build test clean install uninstall install-user uninstall-user fmt lint vet check dev help

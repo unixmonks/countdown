@@ -41,12 +41,6 @@ This installs to `~/.local/bin` - make sure this directory is in your `$PATH`.
 make build
 ```
 
-For an optimized release build:
-
-```bash
-make release
-```
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
